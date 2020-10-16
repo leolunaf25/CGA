@@ -130,7 +130,8 @@ glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixBuzz = glm::mat4(1.0f);
 
-float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
+float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0,
+rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 float rotBuzzLeftArm = 0.0;
 
 int modelSelected = 0;
@@ -155,6 +156,8 @@ int indexFrameDartNext = 1;
 float interpolationDart = 0.0;
 int maxNumPasosDart = 200;
 int numPasosDart = 0;
+
+int aux = 0;
 
 // Var animate helicopter
 float rotHelHelY = 0.0;
@@ -720,6 +723,18 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
 			glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
 		rotDartRightLeg -= 0.02;
+
+
+	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE &&
+		glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS) {
+		if (dorRotCount > 0)
+			dorRotCount -= 0.5;
+	}
+	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
+		glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
+		if (dorRotCount < 75)
+			dorRotCount += 0.5;
+
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		modelMatrixDart = glm::rotate(modelMatrixDart, 0.02f, glm::vec3(0, 1, 0));
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
@@ -1015,9 +1030,10 @@ void applicationLoop() {
 		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
 		modelLambo.render(modelMatrixLamboChasis);
 		glActiveTexture(GL_TEXTURE0);
+
 		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
 		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
-		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
+	//	modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
 		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
 		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
 
@@ -1160,6 +1176,7 @@ void applicationLoop() {
 			matrixDartJoints.push_back(rotDartRightHand);
 			matrixDartJoints.push_back(rotDartLeftLeg);
 			matrixDartJoints.push_back(rotDartRightLeg);
+			matrixDartJoints.push_back(dorRotCount);
 			if (saveFrame) {
 				appendFrame(myfile, matrixDartJoints);
 				saveFrame = false;
@@ -1184,7 +1201,7 @@ void applicationLoop() {
 			rotDartRightHand = interpolate(keyFramesDartJoints, indexFrameDartJoints, indexFrameDartJointsNext, 4, interpolationDartJoints);
 			rotDartLeftLeg = interpolate(keyFramesDartJoints, indexFrameDartJoints, indexFrameDartJointsNext, 5, interpolationDartJoints);
 			rotDartRightLeg = interpolate(keyFramesDartJoints, indexFrameDartJoints, indexFrameDartJointsNext, 6, interpolationDartJoints);
-
+			dorRotCount = interpolate(keyFramesDartJoints, indexFrameDartJoints, indexFrameDartJointsNext, 6, interpolationDartJoints);
 
 		}
 		if (record && modelSelected == 2) {
@@ -1259,9 +1276,7 @@ void applicationLoop() {
 
 			break;
 		}
-
-		//Animacion Lamborghini
-			switch (statel)
+	/*		switch (statel)
 			{
 			case 0:
 				if (numberAdvancel == 0)
@@ -1274,8 +1289,7 @@ void applicationLoop() {
 					maxAdvancel = 40.0;
 				else if (numberAdvancel == 4)
 					maxAdvancel = 35.5;
-				else if (numberAdvancel == 5)
-					maxAdvancel = 0.0;
+
 				statel = 1;
 				break;
 			case 1:
@@ -1285,7 +1299,7 @@ void applicationLoop() {
 				rotWheelsYl -= 0.02;
 				if (rotWheelsYl < 0)
 					rotWheelsYl = 0;
-				if (advanceCountl >= maxAdvancel)
+				if (advanceCountl >= 60)
 				{
 					advanceCountl = 0;
 					numberAdvancel++;
@@ -1303,7 +1317,7 @@ void applicationLoop() {
 					rotWheelsYl = 0.25;
 				if (rotCountl >= 90.0) {
 					rotCountl = 0;
-					statel = 0;
+					statel = 3;
 					if (numberAdvancel > 4)
 						numberAdvancel = 1;
 				}
@@ -1311,6 +1325,84 @@ void applicationLoop() {
 				break;
 
 			case 3:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.1));
+				advanceCountl += 0.1;
+				rotWheelsXl += 0.05;
+				rotWheelsYl -= 0.02;
+				if (rotWheelsYl < 0)
+					rotWheelsYl = 0;
+				if (advanceCountl >= 40.0)
+				{
+					advanceCountl = 0;
+					numberAdvancel++;
+					statel = 4;
+				}
+				break;
+
+			case 4:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.025));
+				modelMatrixLambo = glm::rotate(modelMatrixLambo, glm::radians(0.5f), glm::vec3(0, 1, 0));
+				rotCountl += 0.5;
+				rotWheelsXl += 0.05;
+				rotWheelsYl += 0.02;
+				if (rotWheelsYl > 0.25)
+					rotWheelsYl = 0.25;
+				if (rotCountl >= 90.0) {
+					rotCountl = 0;
+					statel = 5;
+					if (numberAdvancel > 4)
+						numberAdvancel = 1;
+				}
+
+				break;
+
+			case 5:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.1));
+				advanceCountl += 0.1;
+				rotWheelsXl += 0.05;
+				rotWheelsYl -= 0.02;
+				if (rotWheelsYl < 0)
+					rotWheelsYl = 0;
+				if (advanceCountl >= 34.5)
+				{
+					advanceCountl = 0;
+					numberAdvancel++;
+					statel = 6;
+				}
+				break;
+
+			case 6:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.025));
+				modelMatrixLambo = glm::rotate(modelMatrixLambo, glm::radians(0.5f), glm::vec3(0, 1, 0));
+				rotCountl += 0.5;
+				rotWheelsXl += 0.05;
+				rotWheelsYl += 0.02;
+				if (rotWheelsYl > 0.25)
+					rotWheelsYl = 0.25;
+				if (rotCountl >= 90.0) {
+					rotCountl = 0;
+					statel = 7;
+					if (numberAdvancel > 4)
+						numberAdvancel = 1;
+				}
+				break;
+
+			case 7:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.1));
+				advanceCountl += 0.1;
+				rotWheelsXl += 0.05;
+				rotWheelsYl -= 0.02;
+				if (rotWheelsYl < 0)
+					rotWheelsYl = 0;
+				if (advanceCountl >= 35.)
+				{
+					advanceCountl = 0;
+					numberAdvancel++;
+					statel = 8;
+				}
+				break;
+
+			case 8:
 				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.0));
 				rotCountl += 0.0;
 				rotWheelsXl += 0.0;
@@ -1325,16 +1417,120 @@ void applicationLoop() {
 				}
 
 				break;
+			}*/
+
+		//Animacion Lamborghini
+			switch (statel)
+			{
+			case 0:
+				if (numberAdvancel == 0)
+					maxAdvancel = 60.0;
+				else if (numberAdvancel == 1)
+					maxAdvancel = 40.0;
+				else if (numberAdvancel == 2)
+					maxAdvancel = 35.5;
+				else if (numberAdvancel == 3)
+					maxAdvancel = 40.0;
+				else if (numberAdvancel == 4)
+					maxAdvancel = 35.5;
+				statel = 1;
+				break;
+			case 1:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.1));
+				advanceCountl += 0.1;
+				rotWheelsXl += 0.05;
+				rotWheelsYl -= 0.02;
+				if (rotWheelsYl < 0)
+					rotWheelsYl = 0;
+				if (advanceCountl >= 60)
+				{
+					advanceCountl = 0;
+					numberAdvancel++;
+					aux = 2;
+					statel = 2;
+				}
+				break;
+			case 2:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.025));
+				modelMatrixLambo = glm::rotate(modelMatrixLambo, glm::radians(0.5f), glm::vec3(0, 1, 0));
+				rotCountl += 0.5;
+				rotWheelsXl += 0.05;
+				rotWheelsYl += 0.02;
+				if (rotWheelsYl > 0.25)
+					rotWheelsYl = 0.25;
+				if (rotCountl >= 90.0) {
+					rotCountl = 0;
+					statel = aux+1;
+					if (numberAdvancel > 4)
+						numberAdvancel = 1;
+				}
+				break;
+			case 3:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.1));
+				advanceCountl += 0.1;
+				rotWheelsXl += 0.05;
+				rotWheelsYl -= 0.02;
+				if (rotWheelsYl < 0)
+					rotWheelsYl = 0;
+				if (advanceCountl >= 40.0)
+				{
+					advanceCountl = 0;
+					numberAdvancel++;
+					aux = 3;
+					statel = 2;
+				}
+				break;
+			case 4:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.1));
+				advanceCountl += 0.1;
+				rotWheelsXl += 0.05;
+				rotWheelsYl -= 0.02;
+				if (rotWheelsYl < 0)
+					rotWheelsYl = 0;
+				if (advanceCountl >= 34.5)
+				{
+					advanceCountl = 0;
+					numberAdvancel++;
+					aux = 4;
+					statel = 2;
+				}
+				break;
+			case 5:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.1));
+				advanceCountl += 0.1;
+				rotWheelsXl += 0.05;
+				rotWheelsYl -= 0.02;
+				if (rotWheelsYl < 0)
+					rotWheelsYl = 0;
+				if (advanceCountl >= 35.)
+				{
+					advanceCountl = 0;
+					numberAdvancel++;
+					aux = 5;
+					statel = 6;
+				}
+				break;
+			case 6:
+				modelMatrixLambo = glm::translate(modelMatrixLambo, glm::vec3(0.0, 0.0, 0.0));
+				rotCountl += 0.0;
+				rotWheelsXl += 0.0;
+				rotWheelsYl += 0.0;
+				statel = 7;
+				break;
+			case 7:
+				dorRotCount += 0.5;
+				if (dorRotCount > 75)
+					statel = 8;
+				break;
 			}
-
-
 		//State machine for the lanbo car
-		switch (stateDoor) {
-		case 0:
-			dorRotCount += 0.5;
-			if (dorRotCount > 75)
-				stateDoor = 1;
-			break;
+		/*	switch (stateDoor) {
+			case 0:
+				dorRotCount += 0.5;
+				if (dorRotCount > 75)
+					stateDoor = 1;
+				break;
+			}
 		case 1:
 			dorRotCount -= 0.5;
 			if (dorRotCount < 0) {
@@ -1342,7 +1538,9 @@ void applicationLoop() {
 				stateDoor = 0;
 			}
 			break;
-		}
+		}*/
+
+
 		glfwSwapBuffers(window);
 	}
 }
