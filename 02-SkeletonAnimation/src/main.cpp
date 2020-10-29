@@ -57,6 +57,8 @@ Box boxHighway;
 Box boxLandingPad;
 // Models complex instances
 Model modelRock;
+Model modelPokemon;
+
 Model modelAircraft;
 Model modelEclipseChasis;
 Model modelEclipseRearWheels;
@@ -83,6 +85,8 @@ Model modelDartLegoRightLeg;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+// Dragonite
+Model dragonite;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -95,12 +99,12 @@ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
-std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
-		"../Textures/mp_bloodvalley/blood-valley_bk.tga",
-		"../Textures/mp_bloodvalley/blood-valley_up.tga",
-		"../Textures/mp_bloodvalley/blood-valley_dn.tga",
-		"../Textures/mp_bloodvalley/blood-valley_rt.tga",
-		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
+std::string fileNames[6] = { "../Textures/mp_vr/vr_ft.tga",
+		"../Textures/mp_vr/vr_bk.tga",
+		"../Textures/mp_vr/vr_up.tga",
+		"../Textures/mp_vr/vr_dn.tga",
+		"../Textures/mp_vr/vr_rt.tga",
+		"../Textures/mp_vr/vr_lf.tga" };
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -109,11 +113,14 @@ int lastMousePosY, offsetY = 0;
 // Model matrix definitions
 glm::mat4 modelMatrixEclipse = glm::mat4(1.0f);
 glm::mat4 matrixModelRock = glm::mat4(1.0);
+glm::mat4 matrixModelPokemon = glm::mat4(1.0);
+
 glm::mat4 modelMatrixHeli = glm::mat4(1.0f);
 glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixDragonite = glm::mat4(1.0f);
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
@@ -237,6 +244,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelRock.loadModel("../models/rock/rock.obj");
 	modelRock.setShader(&shaderMulLighting);
 
+	modelPokemon.loadModel("../models/pokemon/pokemon.obj");
+	modelPokemon.setShader(&shaderMulLighting);
+
+
+
 	modelAircraft.loadModel("../models/Aircraft_obj/E 45 Aircraft_obj.obj");
 	modelAircraft.setShader(&shaderMulLighting);
 
@@ -291,6 +303,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	//Dragonite
+	dragonite.loadModel("../models/dragonite/drago.fbx");
+	dragonite.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -526,9 +542,13 @@ void destroy() {
 	modelLamboRearRightWheel.destroy();
 	modelLamboRightDor.destroy();
 	modelRock.destroy();
+	modelPokemon.destroy();
+
+
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	dragonite.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -711,6 +731,9 @@ void applicationLoop() {
 
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
 
+	matrixModelPokemon = glm::translate(matrixModelPokemon, glm::vec3(-3.0, 5.0, 2.0));
+
+
 	modelMatrixHeli = glm::translate(modelMatrixHeli, glm::vec3(5.0, 10.0, -5.0));
 
 	modelMatrixAircraft = glm::translate(modelMatrixAircraft, glm::vec3(10.0, 2.0, -17.5));
@@ -768,9 +791,9 @@ void applicationLoop() {
 		 * Propiedades Luz direccional
 		 *******************************************/
 		shaderMulLighting.setVectorFloat3("viewPos", glm::value_ptr(camera->getPosition()));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.3, 0.3, 0.3)));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.7, 0.7, 0.7)));
-		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.9, 0.9, 0.9)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.ambient", glm::value_ptr(glm::vec3(0.7, 0.7, 0.7)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.diffuse", glm::value_ptr(glm::vec3(0.0, 0.0, 0.0)));
+		shaderMulLighting.setVectorFloat3("directionalLight.light.specular", glm::value_ptr(glm::vec3(0.0, 0.0, 0.0)));
 		shaderMulLighting.setVectorFloat3("directionalLight.direction", glm::value_ptr(glm::vec3(-1.0, 0.0, 0.0)));
 
 		/*******************************************
@@ -887,6 +910,9 @@ void applicationLoop() {
 		 *******************************************/
 		//Rock render
 		modelRock.render(matrixModelRock);
+		//Pokemon render
+		modelPokemon.render(matrixModelPokemon);
+
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
 		glActiveTexture(GL_TEXTURE0);
 
@@ -998,6 +1024,11 @@ void applicationLoop() {
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
 		mayowModelAnimate.setAnimationIndex(0);
 		mayowModelAnimate.render(modelMatrixMayowBody);
+
+		glm::mat4 modelMatrixDragoniteBody = glm::mat4(modelMatrixDragonite);
+		modelMatrixDragoniteBody = glm::scale(modelMatrixDragoniteBody, glm::vec3(0.0121, 0.0121, 0.0121));
+		dragonite.setAnimationIndex(0);
+		dragonite.render(modelMatrixDragoniteBody);
 
 		/*******************************************
 		 * Skybox
