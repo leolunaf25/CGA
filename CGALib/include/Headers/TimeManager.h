@@ -49,7 +49,6 @@ public:
 	double StartTime = 0;
 
 	double CurrentTime = 0;
-
 private:
 
 	TimeManager() {
@@ -59,5 +58,6 @@ private:
 	TimeManager(TimeManager const&);
 	TimeManager& operator=(TimeManager const&);
 };
+
 
 #endif
