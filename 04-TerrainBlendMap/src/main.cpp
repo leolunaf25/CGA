@@ -288,7 +288,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	finnModelAnimate.loadModel("../models/finn/finn.fbx");
 	finnModelAnimate.setShader(&shaderMulLighting);
 
-	finn2ModelAnimate.loadModel("../models/finn/finn2.fbx");
+	finn2ModelAnimate.loadModel("../models/finn/finnn.fbx");
 	finn2ModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 15.0, 4.0));
@@ -767,7 +767,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 3)
+		if(modelSelected > 4)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -864,6 +864,15 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(0.0, 0.0, -0.04));
 
+	// Movimientos Finn2
+	if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		modelMatrixFinn2 = glm::rotate(modelMatrixFinn2, 0.02f, glm::vec3(0, 1, 0));
+	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		modelMatrixFinn2 = glm::rotate(modelMatrixFinn2, -0.02f, glm::vec3(0, 1, 0));
+	if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		modelMatrixFinn2 = glm::translate(modelMatrixFinn2, glm::vec3(0.0, 0.0, 0.04));
+	else if (modelSelected == 4 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		modelMatrixFinn2 = glm::translate(modelMatrixFinn2, glm::vec3(0.0, 0.0, -0.04));
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -1107,7 +1116,16 @@ void applicationLoop() {
 		modelMatrixFinn2[3][1] = terrain.getHeightTerrain(modelMatrixFinn2[3][0], modelMatrixFinn2[3][2]);
 		glm::mat4 modelMatrixFinn2Body = glm::mat4(modelMatrixFinn2);
 		modelMatrixFinn2Body = glm::scale(modelMatrixFinn2Body, glm::vec3(0.0051, 0.0051, 0.0051));
-		finn2ModelAnimate.setAnimationIndex(0);
+		if (modelSelected == 4 && (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS
+			|| glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS
+			|| glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS
+			|| glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)) {
+			finn2ModelAnimate.setAnimationIndex(1);
+		}
+		else
+		{
+			finn2ModelAnimate.setAnimationIndex(0);
+		}
 		finn2ModelAnimate.render(modelMatrixFinn2Body);
 
 		modelMatrixFinn[3][1] = terrain.getHeightTerrain(modelMatrixFinn[3][0], modelMatrixFinn[3][2]);
