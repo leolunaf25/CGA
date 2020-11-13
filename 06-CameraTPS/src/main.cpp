@@ -869,39 +869,39 @@ bool processInput(bool continueApplication) {
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(-0.02, 0.0, 0.0));
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
-
-	if (modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+	
+	if (!modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		TimeManager::Instance().resetStartTime();
 		modelChange = true;
 	}
-	else if (!modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
+	else if (modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
 		modelChange = false;
 	}
 
-	if (!modelChange && (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)) {
+	if (!modelChange2 && (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)) {
 		TimeManager::Instance().resetStartTime();
 		modelChange2 = true;
 	}
-	else if (modelChange && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
+	else if (modelChange2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
 		modelChange2 = false;
 	}
 
-	if (modelChange && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+	if (!modelChange3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		TimeManager::Instance().resetStartTime();
 		modelChange3 = true;
 	}
-	else if (!modelChange && glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
+	else if (modelChange3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
 		modelChange3 = false;
 	}
 
-	if (!modelChange && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)) {
+	if (!modelChange4 && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)) {
 		TimeManager::Instance().resetStartTime();
 		modelChange4 = true;
 	}
-	else if (modelChange && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
+	else if (modelChange4 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
 		modelChange4 = false;
 	}
