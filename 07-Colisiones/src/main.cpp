@@ -162,10 +162,10 @@ float dorRotCount = 0.0;
 // Lamps positions
 std::vector<glm::vec3> lamp1Position = { glm::vec3(-7.03, 0, -19.14), glm::vec3(
 		24.41, 0, -34.57), glm::vec3(-10.15, 0, -54.10) };
-std::vector<float> lamp1Orientation = { -17.0, -82.67, 23.70 };
+std::vector<float> lamp1Orientation = { float(-17.0), float(-82.67), float(23.70) };
 std::vector<glm::vec3> lamp2Position = { glm::vec3(-36.52, 0, -23.24),
 		glm::vec3(-52.73, 0, -3.90) };
-std::vector<float> lamp2Orientation = {21.37 + 90, -65.0 + 90};
+std::vector<float> lamp2Orientation = {float(21.37 + 90), float(-65.0 + 90)};
 
 double deltaTime;
 double currTime, lastTime;
@@ -902,7 +902,14 @@ bool processInput(bool continueApplication) {
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -0.02));
 		animationIndex = 0;
 	}
-
+		if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+			modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0.2, 0.0));
+			animationIndex = 0;
+		}
+		else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
+			modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, -0.2, 0.0));
+			animationIndex = 0;
+		}
 	glfwPollEvents();
 	return continueApplication;
 }
