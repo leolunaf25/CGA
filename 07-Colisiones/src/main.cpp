@@ -1304,6 +1304,14 @@ void applicationLoop() {
 		aircraftCollider.e = modelAircraft.getObb().e * glm::vec3(1.0, 1.0, 1.0);
 		addOrUpdateColliders(collidersOBB, "aircraft", aircraftCollider, modelMatrixAircraft);
 
+		AbstractModel::SBB rockCollider;
+		glm::mat4 modelMatrixColliderRock = glm::mat4(matrixModelRock);
+		modelMatrixColliderRock = glm::scale(modelMatrixColliderRock, glm::vec3(1.0, 1.0, 1.0));
+		modelMatrixColliderRock = glm::translate(modelMatrixColliderRock, modelRock.getSbb().c);
+		rockCollider.c = modelMatrixColliderRock[3];
+		rockCollider.ratio = modelRock.getSbb().ratio * 1.0;
+		addOrUpdateColliders(collidersSBB, "rock", rockCollider, matrixModelRock);
+
 		// Lamps1 colliders
 		for (int i = 0; i < lamp1Position.size(); i++){
 			AbstractModel::OBB lampCollider;
@@ -1319,6 +1327,46 @@ void applicationLoop() {
 			lampCollider.e = modelLamp1.getObb().e * glm::vec3(0.5, 0.5, 0.5);
 			addOrUpdateColliders(collidersOBB, "lamp1-" + std::to_string(i), lampCollider, modelMatrixColliderLamp);
 		}
+
+		// Lamps2
+
+		for (int i = 0; i < lamp2Position.size(); i++) {
+			AbstractModel::OBB lamp2Collider;
+			glm::mat4 modelMatrixColliderLamp = glm::mat4(1.0);
+			modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, lamp2Position[i]);
+			modelMatrixColliderLamp = glm::rotate(modelMatrixColliderLamp, glm::radians(lamp2Orientation[i]), glm::vec3(0, 1, 0));
+			lamp2Collider.u = glm::quat_cast(modelMatrixColliderLamp);
+			modelMatrixColliderLamp = glm::scale(modelMatrixColliderLamp, glm::vec3(1.0, 1.0, 1.0));
+			modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, modelLampPost2.getObb().c);
+			lamp2Collider.c = glm::vec3(modelMatrixColliderLamp[3]);
+			lamp2Collider.e = modelLampPost2.getObb().e * glm::vec3(1.0, 1.0, 1.0);
+			addOrUpdateColliders(collidersOBB, "lamp2" + std::to_string(i), lamp2Collider, modelMatrixColliderLamp);
+		}
+		// Lamps top2
+		for (int i = 0; i < lamp2Position.size(); i++) {
+			AbstractModel::OBB lamp2Collider;
+			glm::mat4 modelMatrixColliderLamp = glm::mat4(1.0);
+			modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, lamp2Position[i]);
+			modelMatrixColliderLamp = glm::rotate(modelMatrixColliderLamp, glm::radians(lamp2Orientation[i]), glm::vec3(0, 1, 0));
+			lamp2Collider.u = glm::quat_cast(modelMatrixColliderLamp);
+			modelMatrixColliderLamp = glm::scale(modelMatrixColliderLamp, glm::vec3(1.0, 1.0, 1.0));
+			modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, modelLamp2.getObb().c);
+			lamp2Collider.c = glm::vec3(modelMatrixColliderLamp[3]);
+			lamp2Collider.e = modelLamp2.getObb().e * glm::vec3(1.0, 1.0, 1.0);
+			addOrUpdateColliders(collidersOBB, "lampsTop2" + std::to_string(i), lamp2Collider, modelMatrixColliderLamp);
+		}
+
+		AbstractModel::OBB mayowCollider;
+		glm::mat4 modelMatrixColliderMayow = glm::mat4(modelMatrixMayow);
+		modelMatrixColliderMayow = glm::rotate(modelMatrixColliderMayow, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+		// ANtes de escalar la matriz del collider hay que obtener la orientacion
+		mayowCollider.u = glm::quat_cast(modelMatrixColliderMayow);
+		modelMatrixColliderMayow = glm::scale(modelMatrixColliderMayow, glm::vec3(0.021, 0.021, 0.021));
+		modelMatrixColliderMayow = glm::translate(modelMatrixColliderMayow, mayowModelAnimate.getObb().c);
+		mayowCollider.c = modelMatrixColliderMayow[3];
+		mayowCollider.e = mayowModelAnimate.getObb().e * glm::vec3(0.021, 0.021, 0.021) * glm::vec3(0.75, 0.75, 0.75);
+		addOrUpdateColliders(collidersOBB, "mayow", mayowCollider, modelMatrixMayow);
+
 
 		/*******************************************
 		 * Render de colliders
