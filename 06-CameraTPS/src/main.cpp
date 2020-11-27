@@ -57,6 +57,9 @@ Shader shaderTerrain;
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 5.0;
 
+std::shared_ptr<FirstPersonCamera> camera2(new FirstPersonCamera());
+int camaraActivada = 1;
+
 Sphere skyboxSphere(20, 20);
 
 // Models complex instances
@@ -88,6 +91,7 @@ Model modelLampPost2;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+
 Model finnModelAnimate;
 
 // Terrain model instance
@@ -125,14 +129,16 @@ glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixFinn = glm::mat4(1.0f);
 
-
+glm::mat4 view = glm::mat4(1.0f);
 int indexAnimationMay = 1;
 int indexAnimationFinn = 1;
 
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 2;
-bool enableCountSelected = true;
+int modelSelectedCam = 1;
 
+bool enableCountSelected = true;
+bool enableCountSelectedCam = true;
 // Variables to animations keyframes
 bool saveFrame = false, availableSave = true, modelChange = false, modelChange2 = false, modelChange3 = false, modelChange4 = false;
 std::ofstream myfile;
@@ -316,6 +322,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
 	camera->setSensitivity(1.0f);
+
+	camera2->setPosition(glm::vec3(0.0, 2.5, 0.0));
+	camera2->setDistanceFromTarget(distanceFromTarget);
+	camera2->setSensitivity(1.0f);
+
 
 	// Definimos el tamanio de la imagen
 	int imageWidth, imageHeight;
@@ -759,7 +770,9 @@ void mouseCallback(GLFWwindow *window, double xpos, double ypos) {
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 	distanceFromTarget -= yoffset;
 	camera->setDistanceFromTarget(distanceFromTarget);
+	camera2->setDistanceFromTarget(distanceFromTarget);
 }
+
 
 void mouseButtonCallback(GLFWwindow *window, int button, int state, int mod) {
 	if (state == GLFW_PRESS) {
@@ -783,10 +796,26 @@ bool processInput(bool continueApplication) {
 		return false;
 	}
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-		camera->mouseMoveCamera(offsetX, 0.0, deltaTime);
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-		camera->mouseMoveCamera(0.0, offsetY, deltaTime);
+	if (camaraActivada == 1) {
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			camera->mouseMoveCamera(offsetX, 0.0, deltaTime);
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+			camera->mouseMoveCamera(0.0, offsetY, deltaTime);
+	}
+	else
+	{
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			camera2->moveFrontCamera(true, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			camera2->moveFrontCamera(false, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			camera2->moveRightCamera(false, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			camera2->moveRightCamera(true, deltaTime);
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			camera2->mouseMoveCamera(offsetX, offsetY, 2.0f);
+	}
+
 	offsetX = 0;
 	offsetY = 0;
 
@@ -795,7 +824,7 @@ bool processInput(bool continueApplication) {
 		enableCountSelected = false;
 		modelSelected++;
 		if(modelSelected > 3)
-			modelSelected = 0;
+			modelSelected = 1;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
 		if (modelSelected == 2)
@@ -804,6 +833,23 @@ bool processInput(bool continueApplication) {
 	}
 	else if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
 		enableCountSelected = true;
+
+	// Seleccionar tipo de Cámara
+	if (enableCountSelectedCam && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == 
+		GLFW_PRESS && glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
+		enableCountSelectedCam = false;
+		modelSelectedCam++;
+		if (modelSelectedCam > 2)
+			modelSelectedCam = 1;
+		if (modelSelectedCam == 1)
+			camaraActivada = 0;
+		if (modelSelectedCam == 2)
+			camaraActivada = 1;
+		std::cout << "modelSelectedCamara:" << modelSelectedCam << std::endl;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) ==
+		GLFW_PRESS && glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+		enableCountSelectedCam = true;
 
 	// Guardar key frames
 	if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS
@@ -871,50 +917,41 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS &&
 			glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
 		rotDartRightLeg -= 0.02;
-	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+
+	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		modelMatrixDart = glm::rotate(modelMatrixDart, 0.02f, glm::vec3(0, 1, 0));
-	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		modelMatrixDart = glm::rotate(modelMatrixDart, -0.02f, glm::vec3(0, 1, 0));
-	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+	if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(-0.02, 0.0, 0.0));
-	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+	else if (modelSelected == 1 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 	
-	if (!modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+/*	if (!modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = true;
-	}
+		modelChange = true;}
 	else if (modelChange && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
-		modelChange = false;
-	}
-
+		modelChange = false;}
 	if (!modelChange2 && (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)) {
 		TimeManager::Instance().resetStartTime();
-		modelChange2 = true;
-	}
+		modelChange2 = true;}
 	else if (modelChange2 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
-		modelChange2 = false;
-	}
-
+		modelChange2 = false;}
 	if (!modelChange3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		TimeManager::Instance().resetStartTime();
-		modelChange3 = true;
-	}
+		modelChange3 = true;}
 	else if (modelChange3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
-		modelChange3 = false;
-	}
-
+		modelChange3 = false;}
 	if (!modelChange4 && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)) {
 		TimeManager::Instance().resetStartTime();
-		modelChange4 = true;
-	}
+		modelChange4 = true;}
 	else if (modelChange4 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE) {
 		TimeManager::Instance().resetStartTime();
-		modelChange4 = false;
-	}
+		modelChange4 = false;}*/
+
 	// Mayow animate model movements
 	if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
 		modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(1.0f), glm::vec3(0, 1, 0));
@@ -932,19 +969,16 @@ bool processInput(bool continueApplication) {
 	// Finn animate model movements
 	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
 		modelMatrixFinn = glm::rotate(modelMatrixFinn, glm::radians(1.0f), glm::vec3(0, 1, 0));
-		indexAnimationFinn = 0;
-	}
+		indexAnimationFinn = 0; }
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
 		modelMatrixFinn = glm::rotate(modelMatrixFinn, glm::radians(-1.0f), glm::vec3(0, 1, 0));
-		indexAnimationFinn = 0;
-	}if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		indexAnimationFinn = 0;	}
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 		modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(0, 0, 0.082));
-		indexAnimationFinn = 0;
-	}
+		indexAnimationFinn = 0; }
 	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
 		modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(0, 0, -0.082));
-		indexAnimationFinn = 0;
-	}
+		indexAnimationFinn = 0;	}
 
 	glfwPollEvents();
 	return continueApplication;
@@ -1026,7 +1060,11 @@ void applicationLoop() {
 		camera->setCameraTarget(target);
 		camera->setAngleTarget(angletarget);
 		camera->updateCamera();
-		glm::mat4 view = camera->getViewMatrix();
+	
+		if (camaraActivada == 1)
+			 view = camera->getViewMatrix();
+		else if(camaraActivada == 0)
+			 view = camera2->getViewMatrix();
 
 		// Settea la matriz de vista y projection al shader con solo color
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
@@ -1296,6 +1334,8 @@ void applicationLoop() {
 		modelMatrixFinnBody = glm::scale(modelMatrixFinnBody, glm::vec3(0.00921, 0.00921, 0.00921));
 		finnModelAnimate.setAnimationIndex(indexAnimationFinn);
 		finnModelAnimate.render(modelMatrixFinnBody);
+
+
 		/*******************************************
 		 * Skybox
 		 *******************************************/

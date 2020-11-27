@@ -45,6 +45,7 @@ public:
 	virtual void mouseMoveCamera(float xoffset, float yoffset, float dt) = 0;
 	virtual void scrollMoveCamera(float soffset, float dt) = 0;
 	virtual void updateCamera() = 0;
+
 	glm::mat4 getViewMatrix() {
 		return glm::lookAt(position, position + front, worldUp);
 	}
