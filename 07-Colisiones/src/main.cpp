@@ -1157,8 +1157,8 @@ void applicationLoop() {
 
 		// Lambo car
 		glDisable(GL_CULL_FACE);
+		modelMatrixLambo[3][1] = terrain.getHeightTerrain(modelMatrixLambo[3][0], modelMatrixLambo[3][2]);
 		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
-		modelMatrixLamboChasis[3][1] = terrain.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
 		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
 		modelLambo.render(modelMatrixLamboChasis);
 		glActiveTexture(GL_TEXTURE0);
@@ -1343,7 +1343,7 @@ void applicationLoop() {
 			addOrUpdateColliders(collidersOBB, "lamp2" + std::to_string(i), lamp2Collider, modelMatrixColliderLamp);
 		}
 		// Lamps top2
-		for (int i = 0; i < lamp2Position.size(); i++) {
+	/*	for (int i = 0; i < lamp2Position.size(); i++) {
 			AbstractModel::OBB lamp2Collider;
 			glm::mat4 modelMatrixColliderLamp = glm::mat4(1.0);
 			modelMatrixColliderLamp = glm::translate(modelMatrixColliderLamp, lamp2Position[i]);
@@ -1354,7 +1354,7 @@ void applicationLoop() {
 			lamp2Collider.c = glm::vec3(modelMatrixColliderLamp[3]);
 			lamp2Collider.e = modelLamp2.getObb().e * glm::vec3(1.0, 1.0, 1.0);
 			addOrUpdateColliders(collidersOBB, "lampsTop2" + std::to_string(i), lamp2Collider, modelMatrixColliderLamp);
-		}
+		} */
 
 		AbstractModel::OBB mayowCollider;
 		glm::mat4 modelMatrixColliderMayow = glm::mat4(modelMatrixMayow);
@@ -1366,6 +1366,15 @@ void applicationLoop() {
 		mayowCollider.c = modelMatrixColliderMayow[3];
 		mayowCollider.e = mayowModelAnimate.getObb().e * glm::vec3(0.021, 0.021, 0.021) * glm::vec3(0.75, 0.75, 0.75);
 		addOrUpdateColliders(collidersOBB, "mayow", mayowCollider, modelMatrixMayow);
+
+		AbstractModel::OBB lamboCollider;
+		glm::mat4 modelMatrixColliderLambo = glm::mat4(modelMatrixColliderLambo);
+		lamboCollider.u = glm::quat_cast(modelMatrixColliderLambo);
+		modelMatrixColliderLambo = glm::scale(modelMatrixColliderLambo, glm::vec3(1.3, 1.3, 1.3));
+		modelMatrixColliderLambo = glm::translate(modelMatrixColliderLambo, modelLambo.getObb().c);
+		lamboCollider.c = glm::vec3(modelMatrixColliderLambo[3]);
+		lamboCollider.e = modelLambo.getObb().e * 1.3f;
+		addOrUpdateColliders(collidersOBB, "lambo", lamboCollider, modelMatrixColliderLambo);
 
 
 		/*******************************************
@@ -1412,6 +1421,70 @@ void applicationLoop() {
 		sphereCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));
 		boxCollider.setColor(glm::vec4(1.0, 1.0, 1.0, 1.0));*/
 
+		/************************************************************************************
+		* Test Colision
+		*************************************************************************************/
+
+		for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it = collidersOBB.begin();
+			it != collidersOBB.end(); it++) {
+			bool isCollision = false;
+			for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator jt = collidersOBB.begin();
+					jt != collidersOBB.end(); jt++) {
+				if (it != jt && testOBBOBB(std::get<0>(it->second), std::get<0>(jt->second))) {
+					std::cout << "Colision " << it->first << "With " << jt->first << std::endl;
+					isCollision = true;
+				}
+			}
+			for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator jt = collidersSBB.begin();
+					jt != collidersSBB.end(); jt++) {
+				if (testSphereOBox(std::get<0>(jt->second), std::get<0>(it->second))) {
+					std::cout << "Colision " << it->first << "With " << jt->first << std::endl;
+					std::cout << "Colision " << jt->first << "With " << it->first << std::endl;
+					isCollision = true;
+					addOrUpdateCollisionDetection(collisionDetection, jt->first, true);
+				}
+			}
+			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
+		}
+
+		for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator it = collidersSBB.begin();
+			it != collidersSBB.end(); it++) {
+			bool isCollision = false;
+			for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator jt = collidersSBB.begin();
+					jt != collidersSBB.end(); jt++) {
+				if (it != jt && testSphereSphereIntersection(std::get<0>(it->second), std::get<0>(jt->second))) {
+					isCollision = true;
+				}
+			}
+			addOrUpdateCollisionDetection(collisionDetection, it->first, isCollision);
+		}
+		
+		std::map<std::string, bool>::iterator colIt;
+		for (colIt = collisionDetection.begin(); colIt != collisionDetection.end(); colIt++) {
+			std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator it = 
+				collidersOBB.find(colIt->first);
+			std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator jt =
+				collidersSBB.find(colIt->first);
+			if(jt != collidersSBB.end()) {
+				if (!colIt->second)
+					addOrUpdateColliders(collidersSBB, jt->first);
+			}
+
+
+			if (it != collidersOBB.end()) {
+				if (!colIt->second)
+					addOrUpdateColliders(collidersOBB, it->first);
+				else {
+					if (it->first.compare("mayow") == 0)
+						modelMatrixMayow = std::get<1>(it->second);
+					if (it->first.compare("dart") == 0)
+						modelMatrixDart = std::get<1>(it->second);
+					if (it->first.compare("lambo") == 0)
+						modelMatrixLambo = std::get<1>(it->second);
+				}
+			}
+
+	}
 		/*******************************************
 		 * Interpolation key frames with disconect objects
 		 *******************************************/

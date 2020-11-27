@@ -88,6 +88,8 @@ Model modelLampPost2;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+Model finnModelAnimate;
+
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
@@ -121,8 +123,12 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixFinn = glm::mat4(1.0f);
+
 
 int indexAnimationMay = 1;
+int indexAnimationFinn = 1;
+
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 2;
 bool enableCountSelected = true;
@@ -303,6 +309,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	finnModelAnimate.loadModel("../models/finn/finnrun.fbx");
+	finnModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -703,6 +712,7 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	finnModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -784,7 +794,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 2)
+		if(modelSelected > 3)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -919,6 +929,22 @@ bool processInput(bool continueApplication) {
 		modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, 0, -0.02));
 		indexAnimationMay = 0;
 	}
+	// Finn animate model movements
+	if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+		modelMatrixFinn = glm::rotate(modelMatrixFinn, glm::radians(1.0f), glm::vec3(0, 1, 0));
+		indexAnimationFinn = 0;
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		modelMatrixFinn = glm::rotate(modelMatrixFinn, glm::radians(-1.0f), glm::vec3(0, 1, 0));
+		indexAnimationFinn = 0;
+	}if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(0, 0, 0.082));
+		indexAnimationFinn = 0;
+	}
+	else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(0, 0, -0.082));
+		indexAnimationFinn = 0;
+	}
 
 	glfwPollEvents();
 	return continueApplication;
@@ -939,6 +965,9 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(-13.0f, 0.05f, 0.0f));
+	modelMatrixFinn = glm::rotate(modelMatrixFinn, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -980,6 +1009,12 @@ void applicationLoop() {
 			axis = glm::axis(glm::quat_cast(modelMatrixMayow));
 			angletarget = glm::angle(glm::quat_cast(modelMatrixMayow));
 			target = modelMatrixMayow[3];
+		}
+
+		else if (modelSelected == 3) {
+			axis = glm::axis(glm::quat_cast(modelMatrixFinn));
+			angletarget = glm::angle(glm::quat_cast(modelMatrixFinn));
+			target = modelMatrixFinn[3];
 		}
 
 		if (std::isnan(angletarget))
@@ -1256,6 +1291,11 @@ void applicationLoop() {
 		mayowModelAnimate.setAnimationIndex(indexAnimationMay);
 		mayowModelAnimate.render(modelMatrixMayowBody);
 
+		modelMatrixFinn[3][1] = terrain.getHeightTerrain(modelMatrixFinn[3][0], modelMatrixFinn[3][2]);
+		glm::mat4 modelMatrixFinnBody = glm::mat4(modelMatrixFinn);
+		modelMatrixFinnBody = glm::scale(modelMatrixFinnBody, glm::vec3(0.00921, 0.00921, 0.00921));
+		finnModelAnimate.setAnimationIndex(indexAnimationFinn);
+		finnModelAnimate.render(modelMatrixFinnBody);
 		/*******************************************
 		 * Skybox
 		 *******************************************/
@@ -1332,6 +1372,7 @@ void applicationLoop() {
 		// Constantes de animaciones
 		rotHelHelY += 0.5;
 		indexAnimationMay = 1;
+		indexAnimationFinn = 1;
 
 		/*******************************************
 		 * State machines
