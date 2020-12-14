@@ -93,6 +93,9 @@ Model modelLampPost2;
 // Model animate instance
 // Mayow
 Model mayowModelAnimate;
+
+Model finnModelAnimate;
+
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
@@ -127,7 +130,13 @@ glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 
+glm::mat4 modelMatrixFinn = glm::mat4(1.0f);
+
+
 int animationIndex = 1;
+int indexAnimationFinn = 1;
+
+
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 2;
 bool enableCountSelected = true;
@@ -320,6 +329,9 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	finnModelAnimate.loadModel("../models/finn/finnrun2.fbx");
+	finnModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 0.0, 10.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -723,6 +735,9 @@ void destroy() {
 	// Custom objects animate
 	mayowModelAnimate.destroy();
 
+	finnModelAnimate.destroy();
+
+
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDeleteTextures(1, &textureCespedID);
@@ -803,7 +818,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 2)
+		if(modelSelected > 3)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -910,6 +925,26 @@ bool processInput(bool continueApplication) {
 			modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(0, -0.2, 0.0));
 			animationIndex = 0;
 		}
+
+		// Finn animate model movements
+		if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+			modelMatrixFinn = glm::rotate(modelMatrixFinn, glm::radians(1.0f), glm::vec3(0, 1, 0));
+			indexAnimationFinn = 0;
+		}
+		else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			modelMatrixFinn = glm::rotate(modelMatrixFinn, glm::radians(-1.0f), glm::vec3(0, 1, 0));
+			indexAnimationFinn = 0;
+		}
+		if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(0, 0, 0.082));
+			indexAnimationFinn = 0;
+		}
+		else if (modelSelected == 3 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(0, 0, -0.082));
+			indexAnimationFinn = 0;
+		}
+
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -934,6 +969,9 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+	modelMatrixFinn = glm::translate(modelMatrixFinn, glm::vec3(-13.0f, 0.05f, 0.0f));
+	modelMatrixFinn = glm::rotate(modelMatrixFinn, glm::radians(-90.0f), glm::vec3(0, 1, 0));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -969,10 +1007,16 @@ void applicationLoop() {
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixDart));
 			target = modelMatrixDart[3];
 		}
-		else{
+		else if (modelSelected == 2) {
 			axis = glm::axis(glm::quat_cast(modelMatrixMayow));
 			angleTarget = glm::angle(glm::quat_cast(modelMatrixMayow));
 			target = modelMatrixMayow[3];
+		}
+
+		else if (modelSelected == 3) {
+			axis = glm::axis(glm::quat_cast(modelMatrixFinn));
+			angleTarget = glm::angle(glm::quat_cast(modelMatrixFinn));
+			target = modelMatrixFinn[3];
 		}
 
 		if(std::isnan(angleTarget))
@@ -1257,6 +1301,12 @@ void applicationLoop() {
 		mayowModelAnimate.setAnimationIndex(animationIndex);
 		mayowModelAnimate.render(modelMatrixMayowBody);
 
+		modelMatrixFinn[3][1] = terrain.getHeightTerrain(modelMatrixFinn[3][0], modelMatrixFinn[3][2]);
+		glm::mat4 modelMatrixFinnBody = glm::mat4(modelMatrixFinn);
+		modelMatrixFinnBody = glm::scale(modelMatrixFinnBody, glm::vec3(0.5, 0.5, 0.5));
+		finnModelAnimate.setAnimationIndex(indexAnimationFinn);
+		finnModelAnimate.render(modelMatrixFinnBody);
+
 		/*******************************************
 		 * Skybox
 		 *******************************************/
@@ -1367,14 +1417,24 @@ void applicationLoop() {
 		mayowCollider.e = mayowModelAnimate.getObb().e * glm::vec3(0.021, 0.021, 0.021) * glm::vec3(0.75, 0.75, 0.75);
 		addOrUpdateColliders(collidersOBB, "mayow", mayowCollider, modelMatrixMayow);
 
+		AbstractModel::OBB finnCollider;
+		glm::mat4 modelMatrixColliderFinn = glm::mat4(modelMatrixFinn);
+		// ANtes de escalar la matriz del collider hay que obtener la orientacion
+		finnCollider.u = glm::quat_cast(modelMatrixColliderFinn);
+		modelMatrixColliderFinn = glm::scale(modelMatrixColliderFinn, glm::vec3(0.5, 0.5, 0.5));
+		modelMatrixColliderFinn = glm::translate(modelMatrixColliderFinn, finnModelAnimate.getObb().c);
+		finnCollider.c = modelMatrixColliderFinn[3];
+		finnCollider.e = finnModelAnimate.getObb().e * glm::vec3(0.5, 0.5, 0.9) ;
+		addOrUpdateColliders(collidersOBB, "finn", finnCollider, modelMatrixFinn);
+
 		AbstractModel::OBB lamboCollider;
-		glm::mat4 modelMatrixColliderLambo = glm::mat4(modelMatrixColliderLambo);
+		glm::mat4 modelMatrixColliderLambo = glm::mat4(modelMatrixLambo);
 		lamboCollider.u = glm::quat_cast(modelMatrixColliderLambo);
 		modelMatrixColliderLambo = glm::scale(modelMatrixColliderLambo, glm::vec3(1.3, 1.3, 1.3));
 		modelMatrixColliderLambo = glm::translate(modelMatrixColliderLambo, modelLambo.getObb().c);
 		lamboCollider.c = glm::vec3(modelMatrixColliderLambo[3]);
 		lamboCollider.e = modelLambo.getObb().e * 1.3f;
-		addOrUpdateColliders(collidersOBB, "lambo", lamboCollider, modelMatrixColliderLambo);
+		addOrUpdateColliders(collidersOBB, "lambo", lamboCollider, modelMatrixLambo);
 
 
 		/*******************************************
@@ -1431,15 +1491,15 @@ void applicationLoop() {
 			for (std::map<std::string, std::tuple<AbstractModel::OBB, glm::mat4, glm::mat4> >::iterator jt = collidersOBB.begin();
 					jt != collidersOBB.end(); jt++) {
 				if (it != jt && testOBBOBB(std::get<0>(it->second), std::get<0>(jt->second))) {
-					std::cout << "Colision " << it->first << "With " << jt->first << std::endl;
+					std::cout << "Colision " << it->first << " With " << jt->first << std::endl;
 					isCollision = true;
 				}
 			}
 			for (std::map<std::string, std::tuple<AbstractModel::SBB, glm::mat4, glm::mat4> >::iterator jt = collidersSBB.begin();
 					jt != collidersSBB.end(); jt++) {
 				if (testSphereOBox(std::get<0>(jt->second), std::get<0>(it->second))) {
-					std::cout << "Colision " << it->first << "With " << jt->first << std::endl;
-					std::cout << "Colision " << jt->first << "With " << it->first << std::endl;
+					std::cout << "Colision " << it->first << " With " << jt->first << std::endl;
+					std::cout << "Colision " << jt->first << " With " << it->first << std::endl;
 					isCollision = true;
 					addOrUpdateCollisionDetection(collisionDetection, jt->first, true);
 				}
@@ -1481,6 +1541,8 @@ void applicationLoop() {
 						modelMatrixDart = std::get<1>(it->second);
 					if (it->first.compare("lambo") == 0)
 						modelMatrixLambo = std::get<1>(it->second);
+					if (it->first.compare("finn") == 0)
+						modelMatrixFinn = std::get<1>(it->second);
 				}
 			}
 
@@ -1547,6 +1609,7 @@ void applicationLoop() {
 		// Constantes de animaciones
 		rotHelHelY += 0.5;
 		animationIndex = 1;
+		indexAnimationFinn = 1;
 
 		/*******************************************
 		 * State machines
