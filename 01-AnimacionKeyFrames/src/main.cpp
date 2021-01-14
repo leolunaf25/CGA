@@ -277,7 +277,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	boxLandingPad.init();
 	boxLandingPad.setShader(&shaderMulLighting);
 
-	modelRock.loadModel("../models/rock/rock.obj");
+	modelRock.loadModel("../models/rock/rock1.obj");
 	modelRock.setShader(&shaderMulLighting);
 
 	modelPokemon.loadModel("../models/pokemon/pokemonn.obj");
@@ -856,6 +856,7 @@ void applicationLoop() {
 	int maxAdvance = 0.0;
 
 	matrixModelRock = glm::translate(matrixModelRock, glm::vec3(-3.0, 0.0, 2.0));
+	matrixModelRock = glm::scale(matrixModelRock, glm::vec3(0.09, 0.09, 0.09));
 
 	matrixModelPokemon = glm::translate(matrixModelPokemon, glm::vec3(3.0, 0.0, 2.0));
 
@@ -1057,6 +1058,7 @@ void applicationLoop() {
 		 *******************************************/
 		 //Rock render
 		modelRock.render(matrixModelRock);
+		
 
 		//Pokemon render
 		modelPokemon.render(matrixModelPokemon);
