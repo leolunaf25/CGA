@@ -67,6 +67,11 @@ Shader shaderParticlesFountain;
 //Shader para las particulas de fuego
 Shader shaderParticlesFire;
 
+//Shader para visualizar el buffer de profundidad
+Shader shaderViewDepth;
+//Shader para dibujas la escena su buffer de profundidad
+Shader shaderDepth;
+
 std::shared_ptr<Camera> camera(new ThirdPersonCamera());
 float distanceFromTarget = 7.0;
 
